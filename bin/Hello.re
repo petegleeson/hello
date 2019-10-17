@@ -1,1 +1,1 @@
-Lib.Parser.parse(Sys.argv[1]);
+Lib.Lexer.tokenize(Sys.argv[1]);
