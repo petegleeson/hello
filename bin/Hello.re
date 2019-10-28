@@ -1,27 +1,21 @@
-open Lib.Lexer;
+open Lib.Lexer.Lexer;
+open Lib.Lexer.Parser;
 
-let printTokens = token =>
-  switch (token) {
-  | TNumber(x) => Printf.printf("Number(%s)\n", x)
-  | TPlus => Printf.printf("Plus\n")
-  };
+// let printTokens = token =>
+//   switch (token) {
+//   | TNumber(x) => Printf.printf("Number(%s)\n", x)
+//   | TPlus => Printf.printf("Plus\n")
+//   };
 
-let rec printExp = exp => {
-  switch (exp) {
-  | BinaryExp(x, o, y) =>
-    Printf.sprintf(
-      "BinaryExp(%s, %s, %s)\n",
-      printExp(x),
-      printExp(o),
-      printExp(y),
-    )
-  | Number(x) => Printf.sprintf("Number(%s)\n", x)
-  | Plus => "Plus\n"
-  };
+let rec printAst = ast => {
+  "foo";
 };
 
-let tokens = tokenize(Sys.argv[1]);
-List.iter(printTokens, tokens);
+let filename = Sys.argv[1];
 
-let exp = parse(tokens);
-print_endline(printExp(exp));
+let nextToken = tokenize(filename);
+let next = ref(nextToken());
+while (next.contents.kind !== Eof) {
+  print_endline(format(next.contents));
+  next.contents = nextToken();
+} /* print_endline(printAst(ast))*/ /* let ast = parse(nextToken)*/;
