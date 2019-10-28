@@ -5,8 +5,7 @@ module Lexer = {
     | Number
     | LParen
     | RParen
-    | Operator
-    | Eof;
+    | Operator;
 
   type token = {
     kind,
@@ -19,7 +18,6 @@ module Lexer = {
     | LParen => "LParen"
     | RParen => "RParen"
     | Operator => "Operator(" ++ value ++ ")"
-    | Eof => "Eof"
     };
 
   let isNumber = char => {
@@ -27,37 +25,36 @@ module Lexer = {
     47 < v && v < 58;
   };
 
-  let tokenize = filename => {
-    let ic = open_in(filename);
-    let next = () =>
-      try(Some(input_char(ic))) {
-      | End_of_file =>
-        close_in(ic);
-        None;
-      };
-    let rec nextToken = current => {
-      switch (current) {
-      | None => {kind: Eof, value: "EOF"}
-      | Some(c) when c === '(' => {kind: LParen, value: "("}
-      | Some(c) when c === ')' => {kind: RParen, value: ")"}
-      | Some(c) when c === '+' || c === '-' || c === '/' || c === '*' => {
-          kind: Operator,
-          value: Char.escaped(c),
+  let tokens = chars => {
+    let rec tokenize = i =>
+      try(
+        switch (Stream.next(chars)) {
+        | c when c === '(' => Some({kind: LParen, value: "("})
+        | c when c === ')' => Some({kind: RParen, value: ")"})
+        | c when c === '+' || c === '-' || c === '/' || c === '*' =>
+          Some({kind: Operator, value: Char.escaped(c)})
+        | c when isNumber(c) =>
+          Some({
+            kind: Number,
+            value:
+              switch (Stream.peek(chars)) {
+              | Some(lookahead) when isNumber(lookahead) =>
+                Char.escaped(c)
+                ++ (
+                  switch (tokenize(i)) {
+                  | Some({kind: Number, value}) => value
+                  | _ => "" // this is bad because we should always match above
+                  }
+                )
+              | _ => Char.escaped(c)
+              },
+          })
+        | _ => tokenize(i)
         }
-      | Some(c) when isNumber(c) => {
-          kind: Number,
-          value: {
-            switch (next()) {
-            | Some(lookahead) when isNumber(lookahead) =>
-              Char.escaped(c) ++ nextToken(Some(lookahead)).value
-            | _ => Char.escaped(c)
-            };
-          },
-        }
-      | Some(_) => nextToken(next())
+      ) {
+      | Stream.Failure => None
       };
-    };
-    () => nextToken(next());
+    Stream.from(tokenize);
   };
 };
 

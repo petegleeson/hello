@@ -12,10 +12,7 @@ let rec printAst = ast => {
 };
 
 let filename = Sys.argv[1];
-
-let nextToken = tokenize(filename);
-let next = ref(nextToken());
-while (next.contents.kind !== Eof) {
-  print_endline(format(next.contents));
-  next.contents = nextToken();
-} /* print_endline(printAst(ast))*/ /* let ast = parse(nextToken)*/;
+Stream.iter(
+  token => print_endline(format(token)),
+  filename |> open_in |> Stream.of_channel |> tokens,
+);
