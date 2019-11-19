@@ -25,7 +25,7 @@ let parse = (tokens: Stream.t(Lexer.token)) => {
       let next = Stream.next(tokens);
       let op =
         switch (next) {
-        | {kind: Operator} => next
+        | {kind: Operator | Id} => next
         | _ => raise(ParseError("unexpected token"))
         };
       let rec getArgs = () => {

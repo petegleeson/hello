@@ -1,6 +1,7 @@
 type filename = string;
 
 type kind =
+  | Id
   | Number
   | LParen
   | RParen
@@ -13,6 +14,7 @@ type token = {
 
 let format = ({kind, value}) =>
   switch (kind) {
+  | Id => "Id(" ++ value ++ ")"
   | Number => "Number(" ++ value ++ ")"
   | LParen => "LParen"
   | RParen => "RParen"
@@ -24,6 +26,11 @@ let isNumber = char => {
   47 < v && v < 58;
 };
 
+let isCharacter = char => {
+  let v = int_of_char(char);
+  64 < v && v < 91 || 96 < v && v < 123;
+};
+
 let tokens = chars => {
   let rec tokenize = i =>
     try(
@@ -32,16 +39,21 @@ let tokens = chars => {
       | c when c === ')' => Some({kind: RParen, value: ")"})
       | c when c === '+' || c === '-' || c === '/' || c === '*' =>
         Some({kind: Operator, value: Char.escaped(c)})
-      | c when isNumber(c) =>
+      | c when isNumber(c) || isCharacter(c) =>
         Some({
-          kind: Number,
+          kind: isNumber(c) ? Number : Id,
           value:
             switch (Stream.peek(chars)) {
-            | Some(lookahead) when isNumber(lookahead) =>
+            | Some(lookahead)
+                when
+                  isNumber(lookahead)
+                  && isNumber(c)
+                  || isCharacter(lookahead)
+                  && isCharacter(c) =>
               Char.escaped(c)
               ++ (
                 switch (tokenize(i)) {
-                | Some({kind: Number, value}) => value
+                | Some({kind: Number | Id, value}) => value
                 | _ => "" // this is bad because we should always match above
                 }
               )
