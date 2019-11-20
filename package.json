@@ -1,7 +1,7 @@
 {
   "name": "hello-reason",
   "version": "0.1.0",
-  "description": "Example Reason Esy Project",
+  "description": "my programming language",
   "license": "MIT",
   "esy": {
     "build": "refmterr dune build -p #{self.name}",
